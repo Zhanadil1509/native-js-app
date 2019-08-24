@@ -25,8 +25,6 @@ function submitHandler(event) {
       type: this.$el.type.value,
       ...this.form.value()
     }
-    console.log(formData)
-  } else {
-    console.log('Form Invalidishe!!!')
+    this.form.clear()
   }
 }
