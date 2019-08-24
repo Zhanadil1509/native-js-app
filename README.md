@@ -1,6 +1,5 @@
 ## Simple app for create posts
 *****************************
-
 ### [Demo](https://native-9b669.firebaseapp.com/)
 
 ### Installing
