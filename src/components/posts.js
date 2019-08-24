@@ -1,6 +1,7 @@
 import {Component} from "../core/component";
 import {apiService} from "../services/api";
 import {Transform} from "../services/transform";
+import {renderPost} from "../templates/post";
 
 export class Posts extends Component{
   constructor(id, {loader}) {
@@ -8,11 +9,15 @@ export class Posts extends Component{
     this.loader = loader
   }
 
+  init() {
+    this.$el.addEventListener('click', buttonHandler.bind(this))
+  }
+
   async onShow() {
     this.loader.show()
     const fbData = await apiService.fetchPosts()
     const posts = Transform.fbObjectToArray(fbData)
-    const html = posts.map(post => renderPost(post))
+    const html = posts.map(post => renderPost(post, true))
     this.loader.hide()
     this.$el.insertAdjacentHTML('afterbegin', html.join(' '))
   }
@@ -22,27 +27,26 @@ export class Posts extends Component{
   }
 }
 
-function renderPost(post) {
+function buttonHandler(event) {
+  const $el = event.target
+  const id = $el.dataset.id
+  const title = $el.dataset.title
 
-  const tag = post.type === 'news' ? 'Новость' : 'Заметка'
+  if(id) {
+    let favourite = JSON.parse(localStorage.getItem('favourite')) || []
+    const candidate = favourite.find( p => p.id === id)
+    if(candidate) {
+      $el.textContent = 'В избранное'
+      $el.classList.add('button-primary')
+      $el.classList.remove('button-danger')
+      favourite = favourite.filter(p => p.id !== id)
+    } else {
+      $el.classList.remove('button-primary')
+      $el.classList.add('button-danger')
+      $el.textContent = 'Удалить'
+      favourite.push({id, title})
+    }
 
-  const button = `<button class="button-round button-small button-primary">Сохранить</button>`
-
-  return `
-    <div class="panel">
-      <div class="panel-head">
-        <p class="panel-title">${post.title}</p>
-        <ul class="tags">
-          <li class="tag tag-blue tag-rounded">${tag}</li>
-        </ul>
-      </div>
-      <div class="panel-body">
-        <p class="multi-line">${post.fulltext}</p>
-      </div>
-      <div class="panel-footer w-panel-footer">
-        <small>${post.date}</small>
-        ${button}
-      </div>
-    </div>
-  `
+    localStorage.setItem('favourite', JSON.stringify(favourite))
+  }
 }
